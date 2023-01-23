@@ -18,6 +18,7 @@ def generate_nonce():
 
 @app.route("/", methods=["POST"])
 def proxy():
+    
     global requests_processed
     requests_processed += 1
     # Get the current timestamp
@@ -25,11 +26,14 @@ def proxy():
     # Generate a unique nonce
     jti = generate_nonce()
     # Get the JSON payload
-    payload = request.get_json()
+    payload = request.get_json(silent=True, cache=True)
+    print("sho payload", payload)
     # Add the iat, jti, and payload claims to the payload
     payload["iat"] = iat
     payload["jti"] = jti
-    payload["payload"] = {"user": "username", "date": datetime.today().strftime('%Y-%m-%d')}
+    username = payload['username']
+    payload["payload"] = {"user": username, "date": datetime.today().strftime('%Y-%m-%d')}
+    print("payload full", payload)
     # Sign the payload with the secret
     token = jwt.encode(payload, secret, algorithm='HS512')
     # Forward the request to the upstream endpoint
